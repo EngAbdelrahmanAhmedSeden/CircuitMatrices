@@ -1,0 +1,158 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Analyzer";
+}
+
+<div id="app" data-analyze-url="@Url.Action("Analyze", "Home")">
+  <!-- ====================== INPUT ====================== -->
+  <section class="card no-print" id="inputCard">
+    <h2>1 &middot; Enter the circuit</h2>
+
+    <div class="tabs" role="tablist" id="modeTabs">
+      <button role="tab" class="tab active" data-mode="circuit" type="button">Branch list (from circuit)</button>
+      <button role="tab" class="tab" data-mode="incidence" type="button">Incidence matrix A</button>
+      <button role="tab" class="tab" data-mode="tieset" type="button">Tie-set matrix B</button>
+      <button role="tab" class="tab" data-mode="cutset" type="button">Cut-set matrix C</button>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <!-- Matrix input (hidden in circuit mode) -->
+        <div id="matrixBox" hidden>
+          <label for="matrixText" id="matrixLabel">Matrix</label>
+          <textarea id="matrixText" rows="6" spellcheck="false" placeholder="One row per line, numbers separated by spaces or commas"></textarea>
+          <p class="hint" id="matrixHint"></p>
+        </div>
+
+        <!-- Branch table -->
+        <div id="branchBox">
+          <div class="rowhead">
+            <label>Branches</label>
+            <button class="btn small" id="btnAddBranch" type="button">+ Add branch</button>
+          </div>
+          <div class="tablewrap">
+            <table class="entry" id="branchTable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th class="col-nodes">From node</th>
+                  <th class="col-nodes">To node</th>
+                  <th>Z (&Omega;)</th>
+                  <th>E (V)</th>
+                  <th>I (A)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="hint" id="branchHint">
+            The arrow of a branch points <b>from &rarr; to</b> (the reference direction of its current J).
+            <b>Z</b> = resistance of the branch, <b>E</b> = voltage source in series (positive when it pushes current in the branch direction),
+            <b>I</b> = current source in parallel with the branch (positive in the branch direction).
+          </p>
+        </div>
+
+        <div class="opts">
+          <div>
+            <label for="treeInput">Tree branches <span class="muted">(optional)</span></label>
+            <input id="treeInput" type="text" placeholder="e.g. d,e,f" spellcheck="false">
+          </div>
+          <div>
+            <label for="refInput">Reference node <span class="muted">(optional)</span></label>
+            <input id="refInput" type="number" min="1" step="1" placeholder="last node">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="btnAnalyze" type="button">Analyze circuit</button>
+          <label class="muted">Load example:</label>
+          <select id="presetSelect">
+            <option value="">choose&hellip;</option>
+            @foreach (var ex in Model.Examples)
+            {
+              <option value="@ex.Key">@ex.Title</option>
+            }
+          </select>
+        </div>
+        <div class="error" id="errorBox" hidden role="alert"></div>
+      </div>
+
+      <!-- Image reference -->
+      <div>
+        <div class="rowhead">
+          <label for="imgFile">Circuit image <span class="muted">(reference)</span></label>
+          <button class="btn small ghost" id="btnClearImg" type="button" hidden>Remove</button>
+        </div>
+        <label class="drop" id="dropZone" for="imgFile">
+          <input type="file" id="imgFile" accept="image/*" hidden>
+          <div id="dropText">Drop a circuit picture here or click to choose.<br>
+            <span class="muted">It stays next to the form so you can read nodes and values from it.</span></div>
+          <img id="imgPreview" alt="Uploaded circuit" hidden>
+        </label>
+        <p class="hint">
+          How to read a circuit picture: number every junction as a node (the bottom wire is usually the reference),
+          then every element (resistor, source, or a source with its series resistor) becomes one <b>branch</b> between two nodes.
+          Current sources are removed from the <i>graph</i> but still count in the equations through <b>I</b>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== RESULTS ====================== -->
+  <section id="results" hidden>
+
+    <div class="card" id="summaryCard">
+      <div class="rowhead"><h2>2 &middot; Graph summary</h2>
+        <button class="btn ghost small no-print" id="btnPrint" type="button" title="Print or save as PDF">Print / save as PDF</button></div>
+      <div class="stats" id="stats"></div>
+      <div id="warnings"></div>
+    </div>
+
+    <div class="card">
+      <h2>3 &middot; Graph</h2>
+      <div class="grid2 graphrow">
+        <div class="graphbox"><svg id="graph" viewBox="0 0 560 380" role="img" aria-label="Directed graph of the circuit"></svg></div>
+        <div>
+          <div class="legend">
+            <span><i class="sw tree"></i> tree branch (twig)</span>
+            <span><i class="sw link"></i> link</span>
+            <span><i class="sw ref"></i> reference node</span>
+          </div>
+          <div id="treeInfo"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4 &middot; Network topology matrices</h2>
+      <div id="matrices"></div>
+    </div>
+
+    <div class="card">
+      <h2>5 &middot; Branch currents J<sub>B</sub> and voltages V<sub>B</sub></h2>
+      <div id="solution"></div>
+    </div>
+
+    <div class="card no-print" id="stepsCard">
+      <h2>6 &middot; Step-by-step solution</h2>
+      <div class="stepnav">
+        <div class="chips" id="stepChips"></div>
+        <div class="stepbtns">
+          <button class="btn small" id="btnPrev" type="button">&larr; Back</button>
+          <button class="btn small primary" id="btnNext" type="button">Next &rarr;</button>
+        </div>
+      </div>
+      <div id="stepBody" class="stepbody"></div>
+    </div>
+    <div class="card only-print" id="stepsPrint"></div>
+
+  </section>
+</div>
+
+@* The examples come from the controller (ExampleCatalog) and are loaded by site.js *@
+<script id="examples-data" type="application/json">@Json.Serialize(Model.Examples)</script>
+
+@section Scripts {
+  <script src="~/js/site.js" asp-append-version="true"></script>
+}

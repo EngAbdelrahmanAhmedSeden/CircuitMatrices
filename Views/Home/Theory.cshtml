@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "Theory & exam notes";
+}
+
+<section class="card">
+  <h2>Graph theory in one page</h2>
+  <div class="cheat">
+    <div><b>Graph</b><br>A circuit drawn as nodes joined by branches. Passive elements and voltage sources become branches; current sources are removed from the graph.</div>
+    <div><b>Connected graph</b><br>Any two nodes are joined by a path. All the lecture formulas assume a connected graph.</div>
+    <div><b>Directed graph</b><br>Every branch has an arrow = the reference direction of its current J<sub>B</sub>.</div>
+    <div><b>Tree</b><br>Connected subgraph that contains <u>all</u> nodes and <u>no</u> loop. It has N &minus; 1 branches (twigs).</div>
+    <div><b>Co-tree / links</b><br>Branches that are not in the tree. Number of links L = B &minus; N + 1.</div>
+    <div><b>Fundamental loop (f-loop)</b><br>Loop with exactly one link and tree branches. There are L f-loops &rarr; B has L rows.</div>
+    <div><b>Fundamental cut-set (f-cut-set)</b><br>One twig plus links that separate the graph in two parts. There are N &minus; 1 of them &rarr; C has N &minus; 1 rows.</div>
+    <div><b>Reduced incidence matrix</b><br>A with the reference-node row deleted: N &minus; 1 independent KCL equations.</div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Formulas to memorise</h2>
+  <div class="cheat">
+    <div><b>Counting</b><br>Tree branches = N &minus; 1<br>Links L = B &minus; N + 1<br>f-loops = L &nbsp;&middot;&nbsp; f-cut-sets = N &minus; 1</div>
+    <div><b>Number of trees</b><br>det(A<sub>r</sub> A<sub>r</sub><sup>T</sup>)<br><span class="muted">A<sub>r</sub> = A with the reference row deleted</span></div>
+    <div><b>Laws</b><br>KCL: A J<sub>B</sub> = 0 &nbsp;and&nbsp; C J<sub>B</sub> = 0<br>KVL: B V<sub>B</sub> = 0<br>J<sub>B</sub> = B<sup>T</sup> I<sub>L</sub> &nbsp;&middot;&nbsp; V<sub>B</sub> = C<sup>T</sup> V<sub>T</sub></div>
+    <div><b>Branch equation</b><br>V<sub>B</sub> = Z (J<sub>B</sub> + I<sub>s</sub>) &minus; E<sub>s</sub><br>J<sub>B</sub> = Y (V<sub>B</sub> + E<sub>s</sub>) &minus; I<sub>s</sub></div>
+    <div><b>Loop method</b><br>B Z B<sup>T</sup> I<sub>L</sub> = B E<sub>s</sub> &minus; B Z I<sub>s</sub></div>
+    <div><b>Cut-set method</b><br>C Y C<sup>T</sup> V<sub>T</sub> = C I<sub>s</sub> &minus; C Y E<sub>s</sub></div>
+    <div><b>Relations</b><br>With columns ordered [twigs | links]:<br>B = [ B<sub>t</sub> | U ] &nbsp;&middot;&nbsp; C = [ U | C<sub>L</sub> ]<br>C<sub>L</sub> = &minus;B<sub>t</sub><sup>T</sup></div>
+    <div><b>Signs in A</b><br>+1 current leaves the node<br>&minus;1 current enters the node<br>0 not connected</div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Exam checklist: solving a network with B or C</h2>
+  <ol class="steps-list">
+    <li>Number the nodes, draw the directed graph (one arrow per branch), count N and B, then L = B &minus; N + 1.</li>
+    <li>Choose a tree (N &minus; 1 branches, no loop). The links are the rest.</li>
+    <li>Write one f-loop per link: +1 for the link, +1 / &minus;1 for each twig with the same / opposite direction as the loop, 0 otherwise &rarr; <b>B</b>.</li>
+    <li>Find <b>C</b> from C<sub>L</sub> = &minus;B<sub>t</sub><sup>T</sup> (or write one cut per twig directly).</li>
+    <li>Loop method: build Z, E<sub>s</sub>, I<sub>s</sub>, solve B Z B<sup>T</sup> I<sub>L</sub> = B E<sub>s</sub> &minus; B Z I<sub>s</sub>, then J<sub>B</sub> = B<sup>T</sup> I<sub>L</sub> and V<sub>B</sub> = Z (J<sub>B</sub> + I<sub>s</sub>) &minus; E<sub>s</sub>.</li>
+    <li>Check: B V<sub>B</sub> = 0, A J<sub>B</sub> = 0, and &Sigma; V<sub>B</sub> J<sub>B</sub> = 0.</li>
+  </ol>
+  <p class="muted">The Analyzer page performs exactly these steps and shows each one in the step-by-step panel.</p>
+  <p><a class="btn primary" asp-controller="Home" asp-action="Index">Open the Analyzer</a></p>
+</section>
